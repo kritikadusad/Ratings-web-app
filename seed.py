@@ -23,12 +23,12 @@ def load_users():
         row = row.rstrip()
         user_id, age, gender, occupation, zipcode = row.split("|")
 
-        user = User(user_id=user_id,
+        users = User(user_id=user_id,
                     age=age,
                     zipcode=zipcode)
 
         # We need to add to the session or it won't ever be stored
-        db.session.add(user)
+        db.session.add(users)
 
     # Once we're done, we should commit our work
     db.session.commit()
@@ -45,7 +45,7 @@ def load_movies():
         row = row.rstrip()
         movie_info = row.split("|")
         movie_id = movie_info[0]
-        title = movie_info[1].split("(")
+        title = movie_info[1].split(' (')[0]
         released_str = movie_info[2] 
         imdb_url = movie_info[4]
 
@@ -55,12 +55,12 @@ def load_movies():
             released_at = None
 
 
-        movie = Movie(movie_id = movie_id,
+        movies = Movie(movie_id = movie_id,
                       title = title,
                       released_at = released_at,
                       imdb_url = imdb_url)
 
-        db.session.add(movie)
+        db.session.add(movies)
 
     db.session.commit()
 
@@ -75,11 +75,11 @@ def load_ratings():
         row = row.rstrip()
         user_id, movie_id, score = row.split("\t")[0:-1]
 
-        rating = Rating(user_id = user_id,
+        ratings = Rating(user_id = user_id,
                         movie_id = movie_id,
                         score = score)
 
-        db.session.add(rating)
+        db.session.add(ratings)
 
     db.session.commit()
 
