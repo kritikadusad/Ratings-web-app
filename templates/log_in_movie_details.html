@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+
+  <h2>Movie Info</h2>
+  <p>
+    Title: {{ title }} <br>
+    Released: {{ year }} <br>
+    IMDB: {{ url }} <br>
+    Rating: {{ score }}
+  </p>
+  <form action = '/rate-movie/{{ movie }}' method='POST' >
+    Rating:
+     <select name="movie_rating">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <input type="submit" value="Submit">
+  </form>
+
+{% endblock %}
