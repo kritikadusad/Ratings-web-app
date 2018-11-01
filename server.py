@@ -24,6 +24,7 @@ app.jinja_env.undefined = StrictUndefined
 def index():
     """Homepage."""
 
+# Here, we are checking if the user is logged in (session has 'user' key)
     if 'user' in session:
         return render_template("log_in_homepage.html")
     else:
@@ -33,6 +34,9 @@ def index():
 def register_form():
     """Email address, password registration form."""
     
+    # Reg form is rendered when you go to page and when it is submitted a post request is 
+    # made and if users emails is not in database then it gets added and redirected to the
+    # homepage.  
     if request.method == 'GET':
         return render_template("registration_form.html")
 
@@ -55,19 +59,28 @@ def login():
     
     return render_template("login.html")
 
+
+
+
 @app.route('/logged-in', methods = ['POST'])
 def logged_in():
     """Logged in or not"""
 
     email = request.form.get("email")
     password = request.form.get("password")
-    user = User.query.filter(User.email == email).one()
-    user_id = int(user.user_id)
 
+    # Checking to see if this email exists in the database. Making a user object.
+    user = User.query.filter(User.email == email).one()
+
+    # Checking to see if the password matches for the email provided by the user. 
     user_check = User.query.filter(User.email == email, User.password == password).all()
     
+    # If the check works for the email and matching password, user details page is rendered. 
+    # Otherwise, the homepage is rendered. 
     if user_check:
         session['user'] = email
+        # User id is saved in this varianble.
+        user_id = int(user.user_id)
         flash("You have successfully logged in!")
         return redirect(f"user-details/{user_id}")
     else:
@@ -75,8 +88,9 @@ def logged_in():
 
 @app.route('/logout')
 def logout():
-    """Logged out"""
+    """Logged out and session cleared."""
 
+# This is how you clear a session. Very important when logging out. 
     session.clear()
     flash("Logged out!")
     return redirect("/")
@@ -95,27 +109,52 @@ def movie_list():
     movies = Movie.query.order_by(Movie.title).all()
     return render_template("movies.html", movies=movies)
 
+
+
+
+
+
 @app.route("/movie-details/<movie_id>")
 def movie_details(movie_id):
     """ Show movie details: release date, imdb url, ratings"""
 
+
+    #  We are creating a rating object that has a particular movie_id. 
+    rating_objs = Rating.query.filter(Rating.movie_id == movie_id).all()
+    #  Using relationship between Rating and Movie to create a movie object. 
+    #  We use this for displaying movie title and other movie details. 
     rating_obj = Rating.query.filter(Rating.movie_id == movie_id).first()
     movie = rating_obj.movie
-    score = rating_obj.score
+
+
+    # This info is only displayed if the user is logged in. That's why 
+    #  we are checking if 'user' key is in session. 
+    ratings = {}
+
+    for rating in rating_objs:
+        ratings[rating.user_id] = rating.score
+
     if 'user' in session:
+        # This template says the user is logged in at the top. Different
+        # from the template rendered in the else statement. 
         return render_template("log_in_movie_details.html",
                             movie = movie.movie_id,
                             title = movie.title,
                             year = movie.released_at,
                             url = movie.imdb_url,
-                            score = score)
+                            ratings = ratings)
     else:
+
         return render_template("movie_details.html",
                             movie = movie.movie_id,
                             title = movie.title,
                             year = movie.released_at,
                             url = movie.imdb_url,
-                            score = score)
+                            ratings = ratings)
+
+
+
+
 
 @app.route('/rate-movie/<movie_id>', methods = ['POST'])
 def movie_rated(movie_id):
@@ -143,18 +182,20 @@ def movie_rated(movie_id):
 def user_details(user_id):
     """Get user details"""
     
-    user_detail = Rating.query.get(user_id)
-    person = user_detail.user
-    person_movie = user_detail.movie
-    movie_detail = Rating.query.get(person_movie.movie_id)
 
+    # Making a rating object using the user_id from the url.
+    rating = Rating.query.filter(Rating.user_id == user_id).first()
+    # Made a user object to access user details like age and zipcode. 
+    user = rating.user
+    # Made a movie object to access movie title.
+    movie = rating.movie
 
     return render_template("user_details.html", 
-                            age = person.age,
-                            zipcode = person.zipcode,
-                            movies = person_movie.title, 
-                            movie_score = movie_detail.score)
-
+                            age = user.age,
+                            zipcode = user.zipcode,
+                            movies = movie.title, 
+                            movie_score = rating.score)
+   
 
 
 

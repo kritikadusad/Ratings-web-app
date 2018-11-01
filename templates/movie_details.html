@@ -5,8 +5,12 @@
   <p>
     Title: {{ title }} <br>
     Released: {{ year }} <br>
-    IMDB: {{ url }} <br>
-    Rating: {{ score }}
+    IMDB: {{ url }} <br><br>
+    Ratings <br>
+    {% for user, rating in ratings.items() %}
+
+    	User #{{ user}} Rating:{{ rating }}
+    {% endfor %}
   </p>
 
 {% endblock %}
